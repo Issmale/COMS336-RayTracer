@@ -93,4 +93,19 @@ inline vec3 unit_vector(vec3 v) {
     return v / v.length();
 }
 
+inline vec3 random_in_unit_sphere() {
+    while (true) {
+        vec3 p = vec3(
+            -1 + 2 * (rand() / (RAND_MAX + 1.0)),
+            -1 + 2 * (rand() / (RAND_MAX + 1.0)),
+            -1 + 2 * (rand() / (RAND_MAX + 1.0))
+        );
+        if (p.length_squared() >= 1) continue;
+        return p;
+    }
+}
+
+inline vec3 random_unit_vector() {
+    return unit_vector(random_in_unit_sphere());
+}
 #endif
