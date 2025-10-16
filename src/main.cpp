@@ -1,22 +1,15 @@
 #include <iostream>
 #include "../include/color.h"
+#include "../include/hittable_list.h"
+#include "../include/sphere.h"
 #include "../include/ray.h"
 #include "../include/vec3.h"
 
-color ray_color(const ray& r) {
-    vec3 center(0, 0, -1);
-    double radius = 0.5;
-    
-    vec3 oc = r.origin() - center;
-    double a = dot(r.direction(), r.direction());
-    double b = 2.0 * dot(oc, r.direction());
-    double c = dot(oc, oc) - radius * radius;
-    double discriminant = b * b - 4 * a * c;
-    
-    if (discriminant > 0) {
-        return color(1, 0, 0);
+color ray_color(const ray& r, const hittable& world) {
+    hit_record rec;
+    if (world.hit(r, 0, INFINITY, rec)) {
+        return 0.5 * color(rec.normal.x() + 1, rec.normal.y() + 1, rec.normal.z() + 1);
     }
-    
     vec3 unit_direction = unit_vector(r.direction());
     double t = 0.5 * (unit_direction.y() + 1.0);
     return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
@@ -27,6 +20,12 @@ int main() {
     const double aspect_ratio = 16.0 / 9.0;
     const int image_width = 400;
     const int image_height = static_cast<int>(image_width / aspect_ratio);
+    const int samples_per_pixel = 100; 
+
+    // World
+    hittable_list world;
+    world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
+    world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
 
     // Camera
     double viewport_height = 2.0;
@@ -44,13 +43,17 @@ int main() {
     for (int j = image_height - 1; j >= 0; --j) {
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < image_width; ++i) {
-            double u = double(i) / (image_width - 1);
-            double v = double(j) / (image_height - 1);
+            color pixel_color(0, 0, 0);
             
-            ray r(origin, lower_left_corner + u*horizontal + v*vertical - origin);
+            // Shoot multiple rays per pixel for anti-aliasing
+            for (int s = 0; s < samples_per_pixel; ++s) {
+                double u = (i + random_double()) / (image_width - 1);
+                double v = (j + random_double()) / (image_height - 1);
+                ray r(origin, lower_left_corner + u*horizontal + v*vertical - origin);
+                pixel_color += ray_color(r, world);
+            }
             
-            color pixel_color = ray_color(r);
-            write_color(std::cout, pixel_color);
+            write_color(std::cout, pixel_color, samples_per_pixel);
         }
     }
 
