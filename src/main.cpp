@@ -2,8 +2,7 @@
 #include "../include/color.h"
 #include "../include/hittable_list.h"
 #include "../include/sphere.h"
-#include "../include/ray.h"
-#include "../include/vec3.h"
+#include "../include/camera.h"
 #include "../include/lambertian.h"
 #include "../include/metal.h"
 #include "../include/dielectric.h"
@@ -49,14 +48,13 @@ int main() {
     world.add(make_shared<sphere>(point3( 1.0,    0.0, -1.0),   0.5, material_right));
 
     // Camera
-    double viewport_height = 2.0;
-    double viewport_width = aspect_ratio * viewport_height;
-    double focal_length = 1.0;
+    point3 lookfrom(3, 3, 2);
+    point3 lookat(0, 0, -1);
+    vec3 vup(0, 1, 0);
+    double dist_to_focus = (lookfrom - lookat).length();
+    double aperture = 0.1;
 
-    point3 origin = point3(0, 0, 0);
-    vec3 horizontal = vec3(viewport_width, 0, 0);
-    vec3 vertical = vec3(0, viewport_height, 0);
-    point3 lower_left_corner = origin - horizontal / 2 - vertical / 2 - vec3(0, 0, focal_length);
+    camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
 
     // Render
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
@@ -68,7 +66,7 @@ int main() {
             for (int s = 0; s < samples_per_pixel; ++s) {
                 double u = (i + random_double()) / (image_width - 1);
                 double v = (j + random_double()) / (image_height - 1);
-                ray r(origin, lower_left_corner + u * horizontal + v * vertical - origin);
+                ray r = cam.get_ray(u, v);
                 pixel_color += ray_color(r, world, max_depth);
             }
             write_color(std::cout, pixel_color, samples_per_pixel);

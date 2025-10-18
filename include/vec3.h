@@ -4,6 +4,9 @@
 #include <cmath>
 #include <iostream>
 #include <cstdlib>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 class vec3 {
 public:
@@ -141,4 +144,11 @@ inline vec3 refract(const vec3& uv, const vec3& n, double etai_over_etat) {
     return r_out_perp + r_out_parallel;
 }
 
+inline vec3 random_in_unit_disk() {
+    while (true) {
+        vec3 p = vec3(random_double(-1, 1), random_double(-1, 1), 0);
+        if (p.length_squared() >= 1) continue;
+        return p;
+    }
+}
 #endif
