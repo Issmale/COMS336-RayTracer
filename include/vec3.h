@@ -45,11 +45,19 @@ public:
     double length_squared() const {
         return e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
     }
+
+    bool near_zero() const {
+        // Return true if the vector is close to zero in all dimensions
+        const double s = 1e-8;
+        return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
+    }
 };
 
-using point3 = vec3;  
-using color = vec3;   
+// Type aliases
+using point3 = vec3;
+using color = vec3;
 
+// Utility functions
 inline std::ostream& operator<<(std::ostream &out, const vec3 &v) {
     return out << v.e[0] << ' ' << v.e[1] << ' ' << v.e[2];
 }
@@ -94,22 +102,6 @@ inline vec3 unit_vector(vec3 v) {
     return v / v.length();
 }
 
-inline vec3 random_in_unit_sphere() {
-    while (true) {
-        vec3 p = vec3(
-            -1 + 2 * (rand() / (RAND_MAX + 1.0)),
-            -1 + 2 * (rand() / (RAND_MAX + 1.0)),
-            -1 + 2 * (rand() / (RAND_MAX + 1.0))
-        );
-        if (p.length_squared() >= 1) continue;
-        return p;
-    }
-}
-
-inline vec3 random_unit_vector() {
-    return unit_vector(random_in_unit_sphere());
-}
-
 inline double random_double() {
     return rand() / (RAND_MAX + 1.0);
 }
@@ -149,8 +141,4 @@ inline vec3 refract(const vec3& uv, const vec3& n, double etai_over_etat) {
     return r_out_perp + r_out_parallel;
 }
 
-bool near_zero() const {
-    const double s = 1e-8;
-    return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
-}
 #endif
